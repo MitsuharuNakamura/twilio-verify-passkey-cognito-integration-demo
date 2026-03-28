@@ -32,7 +32,7 @@ export default function LoginPage() {
       const { authenticationOptions } = await startRes.json();
 
       // Step 2: Get assertion with WebAuthn
-      const assertion = await startAuthentication(authenticationOptions);
+      const assertion = await startAuthentication({ optionsJSON: authenticationOptions });
 
       // Step 3: Complete login
       const completeRes = await fetch("/api/auth/login/complete", {

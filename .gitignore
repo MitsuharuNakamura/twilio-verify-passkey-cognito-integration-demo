@@ -42,6 +42,7 @@ lambda/package-lock.json
 # mdfiles
 DESC.md
 CLAUDE.MD
+VERIFY_API.md
 
 # claude
 .claude

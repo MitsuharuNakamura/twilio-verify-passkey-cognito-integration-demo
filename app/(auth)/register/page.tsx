@@ -32,7 +32,7 @@ export default function RegisterPage() {
       const { registrationOptions } = await startRes.json();
 
       // Step 2: Create credential with WebAuthn
-      const credential = await startRegistration(registrationOptions);
+      const credential = await startRegistration({ optionsJSON: registrationOptions });
 
       // Step 3: Complete registration
       const completeRes = await fetch("/api/auth/register/complete", {

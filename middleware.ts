@@ -20,6 +20,7 @@ export async function middleware(req: NextRequest) {
   const token = req.cookies.get("access_token")?.value;
 
   if (!token) {
+    console.log("Middleware: no access_token cookie");
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
@@ -27,8 +28,10 @@ export async function middleware(req: NextRequest) {
     await jwtVerify(token, getJWKS(), {
       issuer: `https://cognito-idp.${region}.amazonaws.com/${userPoolId}`,
     });
+    console.log("Middleware: JWT verified OK");
     return NextResponse.next();
-  } catch {
+  } catch (e) {
+    console.error("Middleware: JWT verification failed:", e);
     return NextResponse.redirect(new URL("/login", req.url));
   }
 }
