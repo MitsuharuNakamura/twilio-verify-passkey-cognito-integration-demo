@@ -143,6 +143,86 @@ zip verify-auth-challenge.zip verify-auth-challenge.js
 
 詳細は [SETUP.md](./SETUP.md) のセクション 3 を参照してください。
 
-## ライセンス
+---
 
-ISC
+## English
+
+### Overview
+
+A Next.js 14 application that implements **passkey-only authentication** (WebAuthn) — no passwords at all. It combines **Twilio Verify Passkeys API** for WebAuthn server-side processing with **AWS Cognito Custom Auth Flow** for session token issuance.
+
+### Architecture
+
+```
+Browser (WebAuthn)
+  ↕
+Next.js API Routes (orchestrator)
+  ↕                ↕
+Twilio Verify      AWS Cognito
+(passkey            (account management +
+ verification)      session token issuance)
+                     ↕
+                   Lambda x3
+                   (HMAC proof token verification)
+```
+
+**How it works:**
+
+1. **Twilio Verify** handles passkey registration and authentication (challenge generation, attestation/assertion verification, public key storage)
+2. **AWS Cognito** manages user accounts and issues JWT session tokens (AccessToken, IdToken, RefreshToken) via Custom Auth Flow
+3. **Next.js API Routes** orchestrate between Twilio and Cognito — after Twilio verifies the passkey, an HMAC proof token is generated and submitted to Cognito as proof that passkey verification was successful
+4. **Lambda triggers** verify the HMAC proof token inside Cognito's Custom Auth Flow
+5. **middleware.ts** validates the JWT session token on protected routes (`/dashboard`)
+
+### Tech Stack
+
+| Purpose                    | Technology                               |
+| -------------------------- | ---------------------------------------- |
+| Frontend / API             | Next.js 14 (App Router)                  |
+| Hosting                    | AWS App Runner                           |
+| Passkey Authentication     | Twilio Verify Passkeys (REST API)        |
+| Account & Token Management | AWS Cognito User Pool (Custom Auth Flow) |
+| Secret Management          | AWS Secrets Manager                      |
+| WebAuthn Client            | @simplewebauthn/browser                  |
+| JWT Verification           | jose                                     |
+| Language                   | TypeScript                               |
+
+### Registration Flow
+
+1. User enters email address
+2. Server creates a Passkey Factor via Twilio API → returns WebAuthn creation options
+3. Browser calls `startRegistration()` → OS passkey creation dialog (fingerprint/face)
+4. Server sends the attestation (credential) to Twilio for verification
+5. Server creates a Cognito user and initiates Custom Auth
+6. Server generates an HMAC proof token (30-second TTL) using the Cognito internal UUID
+7. Cognito Lambda verifies the proof token → Cognito issues session tokens
+8. Session tokens are stored in HttpOnly cookies → redirect to dashboard
+
+### Authentication Flow
+
+1. User enters email address
+2. Server creates a Passkey Challenge via Twilio API → returns WebAuthn assertion options
+3. Browser calls `startAuthentication()` → OS passkey authentication dialog (fingerprint/face)
+4. Server sends the assertion to Twilio for verification
+5. Server initiates Cognito Custom Auth and generates an HMAC proof token
+6. Cognito Lambda verifies the proof token → Cognito issues session tokens
+7. Session tokens are stored in HttpOnly cookies → redirect to dashboard
+
+### Key Design Decisions
+
+- **No password authentication**: Cognito app client only allows `ALLOW_CUSTOM_AUTH` and `ALLOW_REFRESH_TOKEN_AUTH`. Users are created with random permanent passwords that nobody knows.
+- **Twilio identity constraint**: Twilio's identity field only accepts alphanumeric characters and hyphens. Email addresses are converted to SHA256 hashes before being sent to Twilio.
+- **Cognito internal UUID**: When using `username-attributes email`, Cognito's internal `userName` is a UUID, not the email. The HMAC proof token must use this UUID (retrieved from `AdminInitiateAuth` response) to match `event.userName` in the Lambda trigger.
+- **Admin API required**: Since auth is initiated with `AdminInitiateAuth`, the challenge response must use `AdminRespondToAuthChallengeCommand` (not the non-Admin version).
+- **Twilio REST API instead of SDK**: The Twilio Node.js SDK's Entity/Factor API is for Push/TOTP, not Passkeys. This app calls the Passkeys-specific endpoints (`/Passkeys/Factors`, `/Passkeys/VerifyFactor`, `/Passkeys/Challenges`, `/Passkeys/ApproveChallenge`) directly via `fetch`.
+
+### Quick Start
+
+```bash
+npm install
+cp .env.local.example .env.local
+# Edit .env.local with your values
+npm run dev
+```
+
+See [SETUP.md](./SETUP.md) for detailed setup instructions including AWS Cognito, Lambda triggers, and Twilio Verify service configuration.
