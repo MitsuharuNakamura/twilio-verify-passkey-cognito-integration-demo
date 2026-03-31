@@ -112,6 +112,36 @@ passkey-cognito/
 5. HMAC 証明トークンを生成し、Cognito Custom Auth でセッショントークンを取得
 6. Cookie にセッショントークンを保存 → ダッシュボードに遷移
 
+## シーケンス図
+
+### アカウント作成：パスキー生成
+
+![アカウント作成：パスキー生成](docs/images/01-register-passkey.png)
+
+### アカウント作成：Cognito トークン取得 #1
+
+![アカウント作成：Cognito トークン取得 #1](docs/images/02-register-cognito-1.png)
+
+### アカウント作成：Cognito トークン取得 #2
+
+![アカウント作成：Cognito トークン取得 #2](docs/images/03-register-cognito-2.png)
+
+### ログインフロー：パスキー認証 #1
+
+![ログインフロー：パスキー認証 #1](docs/images/04-login-passkey-1.png)
+
+### ログインフロー：パスキー認証 #2
+
+![ログインフロー：パスキー認証 #2](docs/images/05-login-passkey-2.png)
+
+### ログインフロー：Cognito トークン取得 #1
+
+![ログインフロー：Cognito トークン取得 #1](docs/images/06-login-cognito-1.png)
+
+### ログインフロー：Cognito トークン取得 #2
+
+![ログインフロー：Cognito トークン取得 #2](docs/images/07-login-cognito-2.png)
+
 ## デプロイ
 
 ### Docker ビルド
