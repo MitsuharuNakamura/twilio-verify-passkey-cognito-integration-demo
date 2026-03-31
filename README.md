@@ -238,6 +238,36 @@ Twilio Verify      AWS Cognito
 6. Cognito Lambda verifies the proof token → Cognito issues session tokens
 7. Session tokens are stored in HttpOnly cookies → redirect to dashboard
 
+### Sequence Diagrams
+
+#### Account Creation: Passkey Generation
+
+![Account Creation: Passkey Generation](docs/images/08-en-register-passkey.png)
+
+#### Account Creation: Cognito Token Retrieval #1
+
+![Account Creation: Cognito Token Retrieval #1](docs/images/09-en-register-cognito-1.png)
+
+#### Account Creation: Cognito Token Retrieval #2
+
+![Account Creation: Cognito Token Retrieval #2](docs/images/10-en-register-cognito-2.png)
+
+#### Login Flow: Passkey Authentication #1
+
+![Login Flow: Passkey Authentication #1](docs/images/11-en-login-passkey-1.png)
+
+#### Login Flow: Passkey Authentication #2
+
+![Login Flow: Passkey Authentication #2](docs/images/12-en-login-passkey-2.png)
+
+#### Login Flow: Cognito Token Retrieval #1
+
+![Login Flow: Cognito Token Retrieval #1](docs/images/13-en-login-cognito-1.png)
+
+#### Login Flow: Cognito Token Retrieval #2
+
+![Login Flow: Cognito Token Retrieval #2](docs/images/14-en-login-cognito-2.png)
+
 ### Key Design Decisions
 
 - **No password authentication**: Cognito app client only allows `ALLOW_CUSTOM_AUTH` and `ALLOW_REFRESH_TOKEN_AUTH`. Users are created with random permanent passwords that nobody knows.
